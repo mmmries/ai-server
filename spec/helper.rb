@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'rspec'
+require 'eventmachine'
 require 'em-spec/rspec'
 
 $LOAD_PATH.unshift File.expand_path("lib")
