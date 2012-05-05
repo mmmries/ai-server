@@ -45,9 +45,9 @@ describe AIS::Server do
       EM.add_timer(0.1) do
         client.stream do |msg|
           msg = JSON.parse!(msg)
-          ["greeting","game_created"].should include(msg["type"])
-          client.send JSON.generate({:type => :registration, :game => :test}) if msg["type"] == "greeting"
-          EM.stop if msg["type"] == "game_created"
+          ["greeting","created"].should include(msg["type"])
+          client.send JSON.generate({:type => :create, :game => :test}) if msg["type"] == "greeting"
+          EM.stop if msg["type"] == "created"
         end
       end
     end
