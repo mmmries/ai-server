@@ -84,10 +84,9 @@ describe AIS::Server do
           if msg["type"] == "created" then
             client2.stream do |msg_guest|
               msg_guest = JSON.parse!(msg_guest)
-              p msg_guest
               ["greeting","joined"].should include(msg_guest["type"])
               client2.send JSON.generate(:type => :join, :game => msg["game_id"]) if msg_guest["type"] == "greeting"
-              EM.stop if msg_guest["type"] == "registered"
+              EM.stop if msg_guest["type"] == "joined"
             end
           end
         end

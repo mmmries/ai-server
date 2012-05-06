@@ -9,8 +9,9 @@ module AIS
   ## => :joined       this client has joined a game
   ## => 
   class Host
-    def initialize(client)
+    def initialize(client, server)
       @client = client
+      @server = server
       @state = :init
       
       client.onopen { open }
@@ -41,11 +42,14 @@ module AIS
     end
     
     
-    
-    # as messages are 
     def init_create(msg)
       @state = :hosting
       @client.send JSON.generate({:type => :created})
+    end
+    
+    def init_join(msg)
+      @state = :joined
+      @client.send JSON.generate({:type => :joined})
     end
   end
 end

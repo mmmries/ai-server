@@ -13,8 +13,12 @@ module AIS
     def start
       #puts "Starting AIServer on #{@host}:#{@port}"
       EventMachine::WebSocket.start(:host => @host, :port => @port) do |ws|
-        host = AIS::Host.new(ws)
+        host = AIS::Host.new(ws, self)
       end
+    end
+    
+    def start_game(game_type)
+      AIS::Game::Test.new
     end
   end
 end
