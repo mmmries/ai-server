@@ -93,8 +93,4 @@ describe AIS::Server do
       end
     end
   end
-  it "should generate ai players for games"
-  it "should request a move from the client"
-  it "should accept a move from the client"
-  it "should report the end of the game to the client"
 end

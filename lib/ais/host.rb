@@ -1,4 +1,5 @@
 require 'json'
+require 'ais/game/test'
 
 module AIS
   ## The Host object acts as a host for each connected client
@@ -51,5 +52,9 @@ module AIS
       @state = :joined
       @client.send JSON.generate({:type => :joined})
     end
+    
+    # TODO hosting_quit
+    # TODO joined_quit
+    # TODO delegate all other hosting_* and joined_* messages to the game
   end
 end
