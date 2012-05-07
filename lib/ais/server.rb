@@ -4,10 +4,11 @@ require 'ais/host'
 
 module AIS
   class Server
-    attr_reader :host, :port
+    attr_reader :host, :port, :games
     def initialize(opts = {})
       @host = opts[:host] || '0.0.0.0'
       @port = opts[:port] || 8080
+      @games = []
     end
 
     def start
@@ -17,8 +18,8 @@ module AIS
       end
     end
     
-    def start_game(game_type)
-      AIS::Game::Test.new
+    def add_game(game)
+      @games << game
     end
   end
 end

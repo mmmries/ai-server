@@ -14,6 +14,7 @@ module AIS
       @client = client
       @server = server
       @state = :init
+      @game = nil
       
       client.onopen { open }
       client.onclose { close }
@@ -27,7 +28,7 @@ module AIS
     
     # end the dialog with this client
     def close
-      #cleanup all related objects
+      # TODO cleanup all related objects (ie games)
     end
     
     # receive a message from the client
@@ -42,19 +43,30 @@ module AIS
       end
     end
     
-    
     def init_create(msg)
       @state = :hosting
-      @client.send JSON.generate({:type => :created})
+      @game = AIS::Game::Test.new
+      @server.add_game(@game)
+      
+      @client.send JSON.generate({:type => :created, :game_id => @game.object_id})
     end
     
     def init_join(msg)
       @state = :joined
       @client.send JSON.generate({:type => :joined})
+      @game = @server.games.find{ |g| g.object_id == msg["game_id"] }
+      raise "Failed to find game #{msg['game_id']}" if @game.nil?
     end
     
     # TODO hosting_quit
     # TODO joined_quit
-    # TODO delegate all other hosting_* and joined_* messages to the game
+    
+    def hosting_game(msg)
+      @game.receive(msg)
+    end
+    
+    def joined_game(msg)
+      @game.receive(msg)
+    end
   end
 end
