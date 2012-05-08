@@ -20,61 +20,61 @@ describe AIS::Server do
   }
   
   it "should accept websocket connections" do
-    EM.run do
+    em do
       ais.start 
       EM.add_timer(0.1) do
         client.stream do |msg|
           client.response_header.status.should == 101
           client.close_connection
-          EM.stop
+          done
         end
       end
     end
   end
   
   it "should greet new connections" do
-    EM.run do
+    em do
       ais.start
       EM.add_timer(0.1) do
         client.stream do |msg|
           msg = JSON.parse!(msg)
           msg["type"].should == "greeting"
-          EM.stop
+          done
         end
       end
     end
   end
   
   it "should accept game creation requests" do
-    EM.run do
+    em do
       ais.start
       EM.add_timer(0.1) do
         client.stream do |msg|
           msg = JSON.parse!(msg)
           ["greeting","created"].should include(msg["type"])
           client.send JSON.generate({:type => :create, :game => :test}) if msg["type"] == "greeting"
-          EM.stop if msg["type"] == "created"
+          done if msg["type"] == "created"
         end
       end
     end
   end
   
   it "should respond with an error to non-json strings" do
-    EM.run do
+    em do
       ais.start
       EM.add_timer(0.1) do
         client.stream do |msg|
           msg = JSON.parse!(msg)
           ["greeting","error"].index(msg["type"]).should_not be_nil
           client.send("hoorah!") if msg["type"] == "greeting"
-          EM.stop if msg["type"] == "error"
+          done if msg["type"] == "error"
         end
       end
     end
   end
   
   it "should accept registrations for games" do
-    EM.run do
+    em do
       ais.start
       EM.add_timer(0.1) do
         client.stream do |msg|
@@ -86,7 +86,7 @@ describe AIS::Server do
               msg_guest = JSON.parse!(msg_guest)
               ["greeting","joined"].should include(msg_guest["type"])
               client2.send JSON.generate(:type => :join, :game_id => msg["game_id"]) if msg_guest["type"] == "greeting"
-              EM.stop if msg_guest["type"] == "joined"
+              done if msg_guest["type"] == "joined"
             end
           end
         end
