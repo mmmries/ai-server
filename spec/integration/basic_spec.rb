@@ -51,7 +51,7 @@ describe AIS::Server do
       EM.add_timer(0.1) do
         client.stream do |msg|
           msg = JSON.parse!(msg)
-          ["greeting","created"].should include(msg["type"])
+          ["greeting","created", "move_request"].should include(msg["type"])
           client.send JSON.generate({:type => :create, :game => :test}) if msg["type"] == "greeting"
           done if msg["type"] == "created"
         end
@@ -79,12 +79,12 @@ describe AIS::Server do
       EM.add_timer(0.1) do
         client.stream do |msg|
           msg = JSON.parse!(msg)
-          ["greeting","created"].should include(msg["type"])
+          ["greeting","created","move_request"].should include(msg["type"])
           client.send JSON.generate({:type => :create, :game => :test}) if msg["type"] == "greeting"
           if msg["type"] == "created" then
             client2.stream do |msg_guest|
               msg_guest = JSON.parse!(msg_guest)
-              ["greeting","joined"].should include(msg_guest["type"])
+              ["greeting","joined","move_request"].should include(msg_guest["type"])
               client2.send JSON.generate(:type => :join, :game_id => msg["game_id"]) if msg_guest["type"] == "greeting"
               done if msg_guest["type"] == "joined"
             end

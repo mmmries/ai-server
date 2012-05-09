@@ -35,7 +35,7 @@ module AIS
     def receive(msg)
       begin
         msg = JSON.parse!(msg)
-      
+        @game.receive(msg, @client) unless @game.nil?  || msg["type"] == "quit"
         self.send("#{@state}_#{msg['type']}".to_sym, msg)
       rescue
         #puts $! #TODO make this into a logger statement
@@ -46,27 +46,28 @@ module AIS
     def init_create(msg)
       @state = :hosting
       @game = AIS::Game::Test.new
+      @game.add_client(@client)
       @server.add_game(@game)
       
       @client.send JSON.generate({:type => :created, :game_id => @game.object_id})
     end
     
     def init_join(msg)
-      @state = :joined
       @client.send JSON.generate({:type => :joined})
       @game = @server.games.find{ |g| g.object_id == msg["game_id"] }
       raise "Failed to find game #{msg['game_id']}" if @game.nil?
+      @game.add_client(@client)
+      @state = :joined
     end
     
-    # TODO hosting_quit
-    # TODO joined_quit
-    
-    def hosting_game(msg)
-      @game.receive(msg)
+    def hosting_quit(msg)
+      #TODO
+      raise '#hosting_quit not implemented yet, should quit the current game and clean it up'
     end
     
-    def joined_game(msg)
-      @game.receive(msg)
+    def joined_quit(msg)
+      #TODO
+      raise '#joined_quit not implemented yet, should quit the current game'
     end
   end
 end
