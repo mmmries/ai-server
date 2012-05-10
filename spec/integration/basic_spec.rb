@@ -9,13 +9,13 @@ describe AIS::Server do
   let(:ais){ AIS::Server.new(:host => "0.0.0.0", :port => 12345 ) }
   let(:client) { 
     c = EventMachine::HttpRequest.new('ws://127.0.0.1:12345/').get :timeout => 1.0 
-    c.errback{ fail }
+    c.errback{ fail 'client request failed' }
     c
   }
   
   let(:client2) {
     c = EventMachine::HttpRequest.new('ws://127.0.0.1:12345/').get :timeout => 1.0 
-    c.errback{ fail }
+    c.errback{ fail 'client2 request failed' }
     c
   }
   

@@ -35,8 +35,11 @@ module AIS
     def receive(msg)
       begin
         msg = JSON.parse!(msg)
-        @game.receive(msg, @client) unless @game.nil?  || msg["type"] == "quit"
-        self.send("#{@state}_#{msg['type']}".to_sym, msg)
+        if @game.nil?  || msg["type"] == "quit" then
+          self.send("#{@state}_#{msg['type']}".to_sym, msg)
+        else
+          @game.receive(msg, @client)
+        end 
       rescue
         #puts $! #TODO make this into a logger statement
         @client.send JSON.generate({:type => :error, :message => $!.to_s})

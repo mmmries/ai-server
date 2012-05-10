@@ -21,5 +21,9 @@ module AIS
     def add_game(game)
       @games << game
     end
+    
+    def remove_game(game)
+      @games = @games.select{|g| g.object_id != game.object_id }
+    end
   end
 end
