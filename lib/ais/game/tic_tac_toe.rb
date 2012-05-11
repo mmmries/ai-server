@@ -43,10 +43,42 @@ module AIS
         raise 'invalid location' if @state[msg["location"]] != ""
         
         @state[msg["location"]] = current_mark
-        change_turn
-        request_move
+        unless game_over?
+          change_turn
+          request_move
+        end
       end
       
+      def game_over?
+        if winner? then
+          current_player.send JSON.generate(:type => :game_over, :result => :win )
+          @players.select{ |p| p != current_player }.each do |player|
+            player.send JSON.generate(:type => :game_over, :result => :lose)
+          end
+        elsif tie? then
+          @players.each do |player|
+            player.send JSON.generate(:type => :game_over, :result => :tie)
+          end
+          true
+        else
+          false
+        end
+      end
+      
+      def winner?
+        [
+          [0,1,2],[3,4,5],[6,7,8],
+          [0,3,6],[1,4,7],[2,5,8],
+          [0,4,8],[6,4,2]
+        ].any? do |locations|
+          values = locations.map{|idx| @state[idx]}
+          values == ['X','X','X'] || values == ['O','O','O']
+        end
+      end
+      
+      def tie?
+        !@state.any?{ |val| val == "" }
+      end
     end 
   end
 end

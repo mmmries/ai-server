@@ -97,6 +97,94 @@ describe AIS::Game::TicTacToe do
     end
   end
   
-  it "should detect a winning scenario"
-  it "should detect a draw scenario"
+  it "should detect a winning scenario" do
+    em do
+      ais = create_server
+      ais.start
+      
+      c1 = create_client
+      c2 = create_client
+      
+      move_number = 0
+      winner = false
+      loser = false
+      
+      c1.stream do |msg|
+       msg = JSON.parse! msg
+
+       c1.send JSON.generate(:type => :create, :game => "tic-tac-toe") if msg["type"] == "greeting"
+       c2.send JSON.generate(:type => :join, :game_id => msg["game_id"]) if msg["type"] == "created"
+       
+       if msg["type"] == "move_request" then
+         move_number += 1
+         c1.send JSON.generate(:type => :move, :location => 0) if move_number == 1
+         c1.send JSON.generate(:type => :move, :location => 1) if move_number == 3
+         c1.send JSON.generate(:type => :move, :location => 2) if move_number == 5
+       end
+       
+       winner = true if msg["type"] == "game_over" && msg["result"] == "win"
+       done if winner && loser
+     end
+
+     c2.stream do |msg|
+       msg = JSON.parse! msg
+       
+       if msg["type"] == "move_request" then
+         move_number += 1
+         c2.send JSON.generate(:type => :move, :location => 6 ) if move_number == 2
+         c2.send JSON.generate(:type => :move, :location => 7 ) if move_number == 4
+       end
+       
+       loser = true if msg["type"] == "game_over" && msg["result"] == "lose"
+       done if winner && loser
+     end
+    end
+  end
+  
+  it "should detect a draw scenario" do
+    em do
+      ais = create_server
+      ais.start
+      
+      c1 = create_client
+      c2 = create_client
+      
+      move_number = 0
+      tie_number = 0
+      
+      c1.stream do |msg|
+       msg = JSON.parse! msg
+
+       c1.send JSON.generate(:type => :create, :game => "tic-tac-toe") if msg["type"] == "greeting"
+       c2.send JSON.generate(:type => :join, :game_id => msg["game_id"]) if msg["type"] == "created"
+       
+       if msg["type"] == "move_request" then
+         move_number += 1
+         c1.send JSON.generate(:type => :move, :location => 0) if move_number == 1
+         c1.send JSON.generate(:type => :move, :location => 2) if move_number == 3
+         c1.send JSON.generate(:type => :move, :location => 7) if move_number == 5
+         c1.send JSON.generate(:type => :move, :location => 3) if move_number == 7
+         c1.send JSON.generate(:type => :move, :location => 5) if move_number == 9
+       end
+       
+       tie_number += 1 if msg["type"] == "game_over" && msg["result"] == "tie"
+       done if tie_number == 2
+     end
+
+     c2.stream do |msg|
+       msg = JSON.parse! msg
+       
+       if msg["type"] == "move_request" then
+         move_number += 1
+         c2.send JSON.generate(:type => :move, :location => 6 ) if move_number == 2
+         c2.send JSON.generate(:type => :move, :location => 8 ) if move_number == 4
+         c2.send JSON.generate(:type => :move, :location => 1 ) if move_number == 6
+         c2.send JSON.generate(:type => :move, :location => 4 ) if move_number == 8
+       end
+       
+       tie_number += 1 if msg["type"] == "game_over" && msg["result"] == "tie"
+       done if tie_number == 2
+     end
+    end
+  end
 end
