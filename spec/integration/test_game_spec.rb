@@ -6,12 +6,8 @@ describe AIS::Game::Test do
   include EM::SpecHelper
   default_timeout 1.0
   
-  let(:ais){ AIS::Server.new(:host => "0.0.0.0", :port => 12345 ) }
-  let(:client) { 
-    c = EventMachine::HttpRequest.new('ws://127.0.0.1:12345/').get :timeout => 1.0 
-    c.errback{ fail 'client request failed' }
-    c
-  }
+  let(:ais){ create_server }
+  let(:client) { create_client }
   
   it "should request a move from the client and echo all client messages" do
     em do

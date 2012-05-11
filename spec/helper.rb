@@ -9,27 +9,12 @@ RSpec.configure do |config|
   config.mock_with :rspec
 end
 
-class FakeSocketClient < EventMachine::Connection
+def create_server
+  AIS::Server.new(:host => '127.0.0.1', :port => 12345)
+end
 
-  attr_writer :onopen, :onclose, :onmessage
-  attr_reader :data
-
-  def initialize
-    @state = :new
-    @data = []
-  end
-
-  def receive_data(data)
-    @data << data
-    if @state == :new
-      @onopen.call if @onopen
-      @state = :open
-    else
-      @onmessage.call(data) if @onmessage
-    end
-  end
-
-  def unbind
-    @onclose.call if @onclose
-  end
+def create_client
+  c = EventMachine::HttpRequest.new('ws://127.0.0.1:12345/').get :timeout => 1.0 
+  c.errback{ fail 'client request failed' }
+  c
 end
