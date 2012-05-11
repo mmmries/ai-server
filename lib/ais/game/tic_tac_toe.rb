@@ -51,13 +51,13 @@ module AIS
       
       def game_over?
         if winner? then
-          current_player.send JSON.generate(:type => :game_over, :result => :win )
+          current_player.send JSON.generate(:type => :game_over, :result => :win, :state => @state )
           @players.select{ |p| p != current_player }.each do |player|
-            player.send JSON.generate(:type => :game_over, :result => :lose)
+            player.send JSON.generate(:type => :game_over, :result => :lose, :state => @state)
           end
         elsif tie? then
           @players.each do |player|
-            player.send JSON.generate(:type => :game_over, :result => :tie)
+            player.send JSON.generate(:type => :game_over, :result => :tie, :state => @state)
           end
           true
         else

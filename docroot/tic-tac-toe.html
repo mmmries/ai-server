@@ -1,0 +1,144 @@
+<html>
+  <head>
+		<title>Tic-Tac-Toe</title>
+		<style>
+			#board{
+				width: 600px;
+				height: 600px;
+				padding: 0px;
+				float: left;
+			}
+		
+			#board .cell {
+				float: left;
+				width: 198px;
+				height: 198px;
+				margin: 0px;
+				border: 1px solid black;
+				font-size: 75px;
+				text-align: center;
+			}
+			
+			.messages {
+				float: right;
+				width: 300px;
+				height: 600px;
+				overflow: auto;
+			}
+			
+			.messages .message {
+				width: 100%;
+			}
+		</style>
+		<script src="jquery.min.js"></script>
+		<script>
+		$(function(){
+			ws1 = new WebSocket('ws://localhost:8888');
+			ws2 = new WebSocket('ws://localhost:8888');
+			
+			//handlers for player 1
+			ws1.onopen = function(){
+				logMessage("Opened connection");
+			};
+			ws1.onmessage = function(msgEvent){
+				logMessage(msgEvent.data);
+				var msg = JSON.parse(msgEvent.data);
+				
+				if ( msg.type == "greeting" ) {
+					ws1.send(JSON.stringify({"type":"create","game":"tic-tac-toe"}));
+				}
+				
+				if ( msg.type == "created" ) {
+					player2Join(msg.game_id);
+				}
+				
+				if ( msg.type == "move_request" || msg.type == "game_over" ) {
+					renderBoard(msg.state);
+				}
+				
+				if ( msg.type == "move_request" ) {
+					ws1.send(JSON.stringify({"type":"move","location":pickRandomLocation(msg.state)}));
+				}
+				
+				if ( msg.type == "game_over" ) {
+					logMessage("I "+msg.result);
+				}
+			};
+			ws1.onclose = function() {
+				logMessage("Connection Closed");
+			};
+			
+			//handlers for player 2
+			ws2.onopen = function(){
+				logMessage2("Opened connection");
+			};
+			ws2.onmessage = function(msgEvent){
+				logMessage2(msgEvent.data);
+				var msg = JSON.parse(msgEvent.data);
+				if( msg.type == "move_request" || msg.type == "game_over" ) {
+					renderBoard(msg.state);
+				}
+				
+				if ( msg.type == "move_request" ) {
+					ws2.send(JSON.stringify({"type":"move","location":pickRandomLocation(msg.state)}));
+				}
+				
+				if ( msg.type == "game_over" ) {
+					logMessage2("I "+msg.result);
+				}
+			};
+			ws2.onclose = function(){
+				logMessage2("Connection Closed");
+			};
+			
+			//logging functions
+			function logMessage(msg){
+				$('#player1').append( $('<div />').addClass('message').text(msg) );
+			}
+			function logMessage2(msg){
+				$('#player2').append( $('<div />').addClass('message').text(msg) );
+			}
+			
+			//rendering functions
+			function renderBoard(state) {
+				for( var i = 0; i < 9; i++ ) {
+					$('#c'+i).text(state[i]);
+				}
+			}
+			
+			function pickRandomLocation(state) {
+				var found = false;
+				while(!found) {
+					var test = Math.floor(Math.random()*9);
+					if ( state[test] == '' ) {
+						return test;
+					}
+				}
+			}
+			
+			function player2Join(game_id) {
+				ws2.send(JSON.stringify({"type":"join","game_id": game_id}));
+			}
+		});
+		</script>
+	</head>
+	<body>
+		<div id="board">
+		  <div class="cell" id="c0"></div>
+		  <div class="cell" id="c1"></div>
+		  <div class="cell" id="c2"></div>
+			<div class="cell" id="c3"></div>
+			<div class="cell" id="c4"></div>
+			<div class="cell" id="c5"></div>
+			<div class="cell" id="c6"></div>
+			<div class="cell" id="c7"></div>
+			<div class="cell" id="c8"></div>
+		</div>
+		<div class="messages" id="player1">
+			<h4>Player 1</h4>
+		</div>
+		<div class="messages" id="player2">
+			<h4>Player 2</h4>
+		</div>
+	</body>
+</html>
