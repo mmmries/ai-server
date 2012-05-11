@@ -40,7 +40,41 @@ describe AIS::Game::TicTacToe do
     end
   end
   
-  it "should request moves in alternating fashion"
+  it "should request moves in alternating fashion" do
+    em do
+      ais = create_server
+      ais.start
+      
+      c1 = create_client
+      c2 = create_client
+      
+      move_number = 0
+      
+      c1.stream do |msg|
+        msg = JSON.parse! msg
+        c1.send JSON.generate(:type => :create, :game => "tic-tac-toe") if msg["type"] == "greeting"
+        c2.send JSON.generate(:type => :join, :game_id => msg["game_id"]) if msg["type"] == "created"
+        if msg["type"] == "move_request" then
+          move_number += 1
+          msg["your_mark"].should == "X"
+          c1.send JSON.generate(:type => :move, :location => 0 ) if move_number == 1
+          c1.send JSON.generate(:type => :move, :location => 2 ) if move_number == 3
+        end
+      end
+      
+      c2.stream do |msg|
+        msg = JSON.parse! msg
+        if msg["type"] == "move_request" then
+          move_number += 1
+          msg["your_mark"].should == "O"
+          c2.send JSON.generate(:type => :move, :location => 1 ) if move_number == 2
+          done if move_number == 4
+        end
+      end
+    end
+  end
+  
+  it "should accept moves only from the current_player"
   it "should detect a winning scenario"
   it "should detect a draw scenario"
 end

@@ -19,6 +19,11 @@ module AIS
         request_move if @players.size == 2
       end
       
+      def receive(msg, client)
+        try_move(msg, client) if msg["type"] == "move"
+      end
+      
+      ## Here are the game specific functions
       def current_player
         @players.first
       end
@@ -32,6 +37,16 @@ module AIS
       def request_move
         current_player.send JSON.generate(:type => :move_request, :state => state, :your_mark => current_mark)
       end
+      
+      def try_move(msg, client)
+        raise 'it is not your turn' if client != current_player
+        raise 'invalid location' if @state[msg["location"]] != ""
+        
+        @state[msg["location"]] = current_mark
+        change_turn
+        request_move
+      end
+      
     end 
   end
 end
