@@ -74,7 +74,29 @@ describe AIS::Game::TicTacToe do
     end
   end
   
-  it "should accept moves only from the current_player"
+  it "should accept moves only from the current_player" do
+    em do
+      ais = create_server
+      ais.start
+      
+      c1 = create_client
+      c2 = create_client
+      
+      c1.stream do |msg|
+        msg = JSON.parse! msg
+        
+        c1.send JSON.generate(:type => :create, :game => "tic-tac-toe") if msg["type"] == "greeting"
+        c2.send JSON.generate(:type => :join, :game_id => msg["game_id"]) if msg["type"] == "created"
+        c2.send JSON.generate(:type => :move, :location => 0) if msg["type"] == "move_request"
+      end
+      
+      c2.stream do |msg|
+        msg = JSON.parse! msg
+        done if msg["type"] == "error"
+      end
+    end
+  end
+  
   it "should detect a winning scenario"
   it "should detect a draw scenario"
 end
