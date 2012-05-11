@@ -1,5 +1,6 @@
 require 'json'
 require 'ais/game/test'
+require 'ais/game/tic_tac_toe'
 
 module AIS
   ## The Host object acts as a host for each connected client
@@ -48,7 +49,11 @@ module AIS
     
     def init_create(msg)
       @state = :hosting
-      @game = AIS::Game::Test.new
+      if msg["game"] == "tic-tac-toe" then
+        @game = AIS::Game::TicTacToe.new
+      else
+        @game = AIS::Game::Test.new
+      end
       @game.add_client(@client)
       @server.add_game(@game)
       
@@ -56,10 +61,10 @@ module AIS
     end
     
     def init_join(msg)
-      @client.send JSON.generate({:type => :joined})
       @game = @server.games.find{ |g| g.object_id == msg["game_id"] }
       raise "Failed to find game #{msg['game_id']}" if @game.nil?
       @game.add_client(@client)
+      @client.send JSON.generate({:type => :joined})
       @state = :joined
     end
     
